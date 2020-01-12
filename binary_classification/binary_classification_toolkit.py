@@ -3,11 +3,11 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 from sklearn.model_selection import train_test_split
-from classification.cart_toolkit import cart_toolkit
-from classification.logistic_regression_toolkit import logistic_regression_toolkit
-from classification.random_forest_toolkit import random_forest_toolkit
-from classification.xgboost_toolkit import xgboost_toolkit
-from classification.svm_toolkit import SVM_Toolkit
+from binary_classification.binary_cart_toolkit import cart_toolkit
+from binary_classification.binary_logistic_regression_toolkit import logistic_regression_toolkit
+from binary_classification.binary_random_forest_toolkit import random_forest_toolkit
+from binary_classification.binary_xgboost_toolkit import xgboost_toolkit
+from binary_classification.binary_svm_toolkit import SVM_Toolkit
 
 
 # We assume that the dataframe we read here is pre-processed,
