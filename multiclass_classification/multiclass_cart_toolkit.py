@@ -1,7 +1,7 @@
 # Author: Hamza Tazi Bouardi
 import pandas as pd
 from sklearn.model_selection import GridSearchCV
-from sklearn.metrics import accuracy_score, roc_auc_score, roc_curve, auc
+from sklearn.metrics import accuracy_score
 from sklearn.tree import DecisionTreeClassifier
 
 
@@ -17,7 +17,7 @@ def cart_toolkit(
         "max_depth": [3, 4, 5, 6, 7, 8],
         "min_samples_leaf": [5, 10, 15, 20]
     }
-    gs_cv_cart = GridSearchCV(cart_model, gs_params_cart, cv=5, n_jobs=-1, scoring="roc_auc")
+    gs_cv_cart = GridSearchCV(cart_model, gs_params_cart, cv=5, n_jobs=-1, scoring="accuracy")
     gs_cv_cart.fit(X_train, y_train)
     results_cart = pd.DataFrame(gs_cv_cart.cv_results_)
     dict_best_params_cart = results_cart[results_cart.rank_test_score == 1]["params"].values[0]
@@ -30,20 +30,13 @@ def cart_toolkit(
     )
     cart_model_best.fit(X_train, y_train)
     y_pred_cart = cart_model_best.predict(X_test)
-
-    # Predict probabilities instead of only values for AUC
-    y_pred_proba_cart = cart_model_best.predict_proba(X_test)[:, 1]
     accuracy_test_cart = accuracy_score(y_test, y_pred_cart)
-    auc_test_score_cart = roc_auc_score(y_test, y_pred_proba_cart)
     # Scores on train
-    y_pred_train_proba_cart = cart_model_best.predict_proba(X_train)[:, 1]
-    auc_train_score_cart = roc_auc_score(y_train, y_pred_train_proba_cart)
-    print(f"CART scores on Train\t AUC={round(auc_train_score_cart, 3)}")
+    y_pred_train_cart = cart_model_best.predict(X_train)
+    accuracy_train_score_cart = accuracy_score(y_train, y_pred_train_cart)
+    print(f"CART scores on Train\t Accuracy={round(accuracy_train_score_cart, 3)}")
     # Scores on test
     print(f"CART scores on Test " +
-          f"set:\t Accuracy={round(accuracy_test_cart, 3)}\t\t AUC={round(auc_test_score_cart, 3)}")
+          f"set:\t Accuracy={round(accuracy_test_cart, 3)}")
 
-    # FPR, TPR and AUC for CART
-    fpr_cart, tpr_cart, threshold_cart = roc_curve(y_test, y_pred_proba_cart)
-    roc_auc_cart = auc(fpr_cart, tpr_cart)
-    return cart_model_best, roc_auc_cart, fpr_cart, tpr_cart
+    return cart_model_best, accuracy_test_cart
