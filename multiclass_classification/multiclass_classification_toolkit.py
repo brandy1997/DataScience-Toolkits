@@ -1,5 +1,4 @@
 # Author: Hamza Tazi Bouardi
-import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 from sklearn.model_selection import train_test_split
@@ -16,6 +15,8 @@ df = pd.read_csv("./filename.csv")
 X_train, X_test, y_train, y_test = train_test_split(
    df.iloc[:, :-1], df.iloc[:, -1], stratify=df.iloc[:, -1]
 )
+assert len(y_train.unique()) > 2, \
+    f"This dataset is not fit for multiclass classification as it has {len(y_train.unique())} classes"
 
 #### CART ####
 cart_model_best, accuracy_cart = cart_toolkit(
@@ -51,15 +52,16 @@ svm_rbf_model_best, accuracy_test_svm_rbf = (
 
 
 #### Plotting Accuracy for all models to compare ####
-models = ["CART", "Logistic Regression", "XGBoost", "Linear SVM", "Gaussian SVM"]
+ticks = ["CART", "Logistic Regression", "Random Forest", "XGBoost", "Linear SVM", "Gaussian SVM"]
+models = [i+1 for i in range(len(ticks))]
 accuracies = [
     accuracy_cart, accuracy_logreg, accuracy_rf,
     accuracy_xgb, accuracy_test_svm_linear, accuracy_test_svm_rbf
 ]
-plt.figure(figsize=(12, 7))
-plt.title('ROC Curve for all models', fontsize=16)
+plt.figure(figsize=(12, 5))
+plt.title('Comparison of Accuracy for all models', fontsize=16)
 plt.bar(models, accuracies, color='firebrick')
-plt.xlim([0, 1])
 plt.ylim([0, 1])
-plt.ylabel('Accuracy', fontsize=12)
+plt.ylabel('Accuracy', fontsize=12, rotation=90)
+plt.xticks(models, ticks)
 plt.show()

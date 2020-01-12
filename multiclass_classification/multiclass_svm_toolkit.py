@@ -67,9 +67,9 @@ class SVM_Toolkit():
         print(f"SVM Linear scores on Train\t Accuracy={round(accuracy_train_svm_linear,3)}")
         # Scores on test
         y_pred_svm_linear = self.svm_linear_model_best.predict(self.X_test_scaled)
-        accuracy_test_svm_linear = accuracy_score(self.y_test, y_pred_svm_linear)
+        self.accuracy_test_svm_linear = accuracy_score(self.y_test, y_pred_svm_linear)
         print(f"SVM Linear scores on Test " +
-              f"set:\t Accuracy={round(accuracy_test_svm_linear,3)}")
+              f"set:\t Accuracy={round(self.accuracy_test_svm_linear,3)}")
 
     def gaussian_svm_toolkit(self):
         ## Gaussian Kernel
@@ -94,7 +94,7 @@ class SVM_Toolkit():
         self.svm_rbf_model_best.fit(self.X_train_scaled, self.y_train)
         # Scores on train
         y_pred_train_svm_rbf = self.svm_rbf_model_best.predict(self.X_train_scaled)
-        accuracy_train_svm_rbf = roc_auc_score(self.y_train, y_pred_train_svm_rbf)
+        accuracy_train_svm_rbf = accuracy_score(self.y_train, y_pred_train_svm_rbf)
         print(f"SVM Gaussian scores on Train\t Accuracy={round(accuracy_train_svm_rbf,3)}")
         # Scores on test
         y_pred_svm_rbf = self.svm_rbf_model_best.predict(self.X_test_scaled)

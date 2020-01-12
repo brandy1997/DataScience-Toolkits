@@ -16,6 +16,8 @@ df = pd.read_csv("./filename.csv")
 X_train, X_test, y_train, y_test = train_test_split(
    df.iloc[:, :-1], df.iloc[:, -1], stratify=df.iloc[:, -1]
 )
+assert len(y_train.unique()) == 2, \
+    f"This dataset is not fit for binary classification as it has {len(y_train.unique())} classes"
 
 #### CART ####
 cart_model_best, roc_auc_cart, fpr_cart, tpr_cart = cart_toolkit(
