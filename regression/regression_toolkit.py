@@ -7,6 +7,8 @@ from sklearn.model_selection import train_test_split
 from regression_cart_toolkit import cart_toolkit
 from regression_random_forest_toolkit import random_forest_toolkit
 from regression_xgboost_toolkit import xgboost_toolkit
+from warnings import simplefilter
+simplefilter(action='ignore', category=FutureWarning)
 
 
 # We assume that the dataframe we read here is pre-processed,
