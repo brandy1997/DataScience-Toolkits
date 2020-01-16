@@ -21,7 +21,7 @@ def xgboost_toolkit(
         "objective": ['reg:squarederror'],
         "n_jobs": [-1]
     }
-    gs_cv_obj_xgb = GridSearchCV(xgb_model, gs_params_xgb, cv=5, n_jobs=-1, scoring="accuracy")
+    gs_cv_obj_xgb = GridSearchCV(xgb_model, gs_params_xgb, cv=5, n_jobs=-1, scoring="neg_mean_squared_error")
     gs_cv_obj_xgb.fit(X_train, y_train)
     results_xgb = pd.DataFrame(gs_cv_obj_xgb.cv_results_)
     dict_best_params_xgb = results_xgb[results_xgb.rank_test_score == 1]["params"].values[0]
