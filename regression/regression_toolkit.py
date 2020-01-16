@@ -13,7 +13,7 @@ simplefilter(action='ignore', category=FutureWarning)
 
 # We assume that the dataframe we read here is pre-processed,
 # with the last column being the labels
-df = pd.read_csv("../../../1. Fall Semester/15.095 Machine Learning under a modern Optimization Lens/4. Final Project/data/2. Concrete/concrete_complete.csv")
+df = pd.read_csv("filename.csv")
 @click.command()
 @click.option(
     '--last_column_is_target',
