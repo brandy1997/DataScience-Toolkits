@@ -3,6 +3,7 @@ import pandas as pd
 from sklearn.model_selection import GridSearchCV
 from sklearn.metrics import accuracy_score
 from sklearn.tree import DecisionTreeClassifier
+from multiclass_utils import get_all_metrics_multiclass
 
 
 def cart_toolkit(
@@ -29,14 +30,30 @@ def cart_toolkit(
         random_state=0
     )
     cart_model_best.fit(X_train, y_train)
-    y_pred_cart = cart_model_best.predict(X_test)
-    accuracy_test_cart = accuracy_score(y_test, y_pred_cart)
-    # Scores on train
-    y_pred_train_cart = cart_model_best.predict(X_train)
-    accuracy_train_score_cart = accuracy_score(y_train, y_pred_train_cart)
-    print(f"CART scores on Train\t Accuracy={round(accuracy_train_score_cart, 3)}")
-    # Scores on test
-    print(f"CART scores on Test " +
-          f"set:\t Accuracy={round(accuracy_test_cart, 3)}")
 
+    # Predict train and test
+    y_pred_train_proba_cart = cart_model_best.predict_proba(X_train)
+    y_pred_train_cart = cart_model_best.predict(X_train)
+    y_pred_cart = cart_model_best.predict(X_test)
+    y_pred_proba_cart = cart_model_best.predict_proba(X_test)
+
+    # Generate all useful metrics
+    accuracy_train_cart, balanced_accuracy_train_cart, avg_pairwise_auc_train_cart = get_all_metrics_multiclass(
+        y_train, y_pred_train_cart, y_pred_train_proba_cart
+    )
+    accuracy_test_cart, balanced_accuracy_test_cart, avg_pairwise_auc_test_cart = get_all_metrics_multiclass(
+        y_test, y_pred_cart, y_pred_proba_cart
+    )
+    # Scores on train
+    print(
+        f"CART scores on Train:\nAccuracy={accuracy_train_cart}" +
+        f"\t\tBalanced Accuracy={balanced_accuracy_train_cart}" +
+        f"\t\tAverage Pairwise AUC={avg_pairwise_auc_train_cart} "
+    )
+    # Scores on test
+    print(
+        f"CART scores on Test:\nAccuracy={accuracy_test_cart}" +
+        f"\t\tBalanced Accuracy={balanced_accuracy_test_cart}" +
+        f"\t\tAverage Pairwise AUC={avg_pairwise_auc_test_cart} "
+    )
     return cart_model_best, accuracy_test_cart

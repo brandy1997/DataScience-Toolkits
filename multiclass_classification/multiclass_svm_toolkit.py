@@ -2,9 +2,10 @@
 import pandas as pd
 import numpy as np
 from sklearn.model_selection import GridSearchCV
-from sklearn.metrics import accuracy_score, roc_auc_score, roc_curve, auc
+from sklearn.metrics import accuracy_score
 from sklearn.preprocessing import StandardScaler
 from sklearn.svm import SVC
+from multiclass_utils import get_all_metrics_multiclass
 
 
 class SVM_Toolkit():
@@ -61,15 +62,33 @@ class SVM_Toolkit():
             probability=True
         )
         self.svm_linear_model_best.fit(self.X_train_scaled, self.y_train)
-        # Scores on train
+
+        # Predict train and test
+        y_pred_train_proba_svm_linear = self.svm_linear_model_best.predict_proba(self.X_train_scaled)
         y_pred_train_svm_linear = self.svm_linear_model_best.predict(self.X_train_scaled)
-        accuracy_train_svm_linear = accuracy_score(self.y_train, y_pred_train_svm_linear)
-        print(f"SVM Linear scores on Train\t Accuracy={round(accuracy_train_svm_linear,3)}")
-        # Scores on test
         y_pred_svm_linear = self.svm_linear_model_best.predict(self.X_test_scaled)
-        self.accuracy_test_svm_linear = accuracy_score(self.y_test, y_pred_svm_linear)
-        print(f"SVM Linear scores on Test " +
-              f"set:\t Accuracy={round(self.accuracy_test_svm_linear,3)}")
+        y_pred_proba_svm_linear = self.svm_linear_model_best.predict_proba(self.X_test_scaled)
+
+        # Generate all useful metrics
+        accuracy_train_svm_linear, balanced_accuracy_train_svm_linear, avg_pairwise_auc_train_svm_linear = get_all_metrics_multiclass(
+            self.y_train, y_pred_train_svm_linear, y_pred_train_proba_svm_linear
+        )
+        self.accuracy_test_svm_linear, balanced_accuracy_test_svm_linear, avg_pairwise_auc_test_svm_linear = get_all_metrics_multiclass(
+            self.y_test, y_pred_svm_linear, y_pred_proba_svm_linear
+        )
+
+        # Scores on train
+        print(
+            f"Linear SVM scores on Train:\nAccuracy={accuracy_train_svm_linear}" +
+            f"\t\tBalanced Accuracy={balanced_accuracy_train_svm_linear}" +
+            f"\t\tAverage Pairwise AUC={avg_pairwise_auc_train_svm_linear} "
+        )
+        # Scores on test
+        print(
+            f"Linear SVM scores on Test:\nAccuracy={self.accuracy_test_svm_linear}" +
+            f"\t\tBalanced Accuracy={balanced_accuracy_test_svm_linear}" +
+            f"\t\tAverage Pairwise AUC={avg_pairwise_auc_test_svm_linear} "
+        )
 
     def gaussian_svm_toolkit(self):
         ## Gaussian Kernel
@@ -92,12 +111,30 @@ class SVM_Toolkit():
             probability=True
         )
         self.svm_rbf_model_best.fit(self.X_train_scaled, self.y_train)
-        # Scores on train
+        
+        # Predict train and test
+        y_pred_train_proba_svm_rbf = self.svm_rbf_model_best.predict_proba(self.X_train_scaled)
         y_pred_train_svm_rbf = self.svm_rbf_model_best.predict(self.X_train_scaled)
-        accuracy_train_svm_rbf = accuracy_score(self.y_train, y_pred_train_svm_rbf)
-        print(f"SVM Gaussian scores on Train\t Accuracy={round(accuracy_train_svm_rbf,3)}")
-        # Scores on test
         y_pred_svm_rbf = self.svm_rbf_model_best.predict(self.X_test_scaled)
-        self.accuracy_test_svm_rbf = accuracy_score(self.y_test, y_pred_svm_rbf)
-        print(f"SVM Gaussian scores on Test " +
-              f"set:\t Accuracy={round(self.accuracy_test_svm_rbf,3)}")
+        y_pred_proba_svm_rbf = self.svm_rbf_model_best.predict_proba(self.X_test_scaled)
+
+        # Generate all useful metrics
+        accuracy_train_svm_rbf, balanced_accuracy_train_svm_rbf, avg_pairwise_auc_train_svm_rbf = get_all_metrics_multiclass(
+            self.y_train, y_pred_train_svm_rbf, y_pred_train_proba_svm_rbf
+        )
+        self.accuracy_test_svm_rbf, balanced_accuracy_test_svm_rbf, avg_pairwise_auc_test_svm_rbf = get_all_metrics_multiclass(
+            self.y_test, y_pred_svm_rbf, y_pred_proba_svm_rbf
+        )
+
+        # Scores on train
+        print(
+            f"rbf SVM scores on Train:\nAccuracy={accuracy_train_svm_rbf}" +
+            f"\t\tBalanced Accuracy={balanced_accuracy_train_svm_rbf}" +
+            f"\t\tAverage Pairwise AUC={avg_pairwise_auc_train_svm_rbf} "
+        )
+        # Scores on test
+        print(
+            f"rbf SVM scores on Test:\nAccuracy={self.accuracy_test_svm_rbf}" +
+            f"\t\tBalanced Accuracy={balanced_accuracy_test_svm_rbf}" +
+            f"\t\tAverage Pairwise AUC={avg_pairwise_auc_test_svm_rbf} "
+        )

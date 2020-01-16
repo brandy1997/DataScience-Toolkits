@@ -3,6 +3,7 @@ import pandas as pd
 from sklearn.model_selection import GridSearchCV
 from sklearn.metrics import accuracy_score
 from xgboost import XGBClassifier
+from multiclass_utils import get_all_metrics_multiclass
 
 
 def xgboost_toolkit(
@@ -15,7 +16,7 @@ def xgboost_toolkit(
         random_state=0
     )
     gs_params_xgb = {
-        "n_estimators": [50, 100, 200, 500],
+        "n_estimators": [50, 100, 200, 500, 1000],
         "learning_rate": [0.1, 0.05, 0.01, 0.005],
         "max_depth": [2, 3, 4, 5, 6, 7],
         "objective": ['multi:softmax'],
@@ -35,15 +36,30 @@ def xgboost_toolkit(
         random_state=0
     )
     xgb_model_best.fit(X_train, y_train)
-    y_pred_xgb = xgb_model_best.predict(X_test)
 
-    # Predict probabilities instead of only values for AUC
-    # Scores on train
+    # Predict train and test
+    y_pred_train_proba_xgb = xgb_model_best.predict_proba(X_train)
     y_pred_train_xgb = xgb_model_best.predict(X_train)
-    accuracy_train_xgb = accuracy_score(y_train, y_pred_train_xgb)
-    print(f"XGBoost scores on Train\t AUC={round(accuracy_train_xgb, 3)}")
+    y_pred_xgb = xgb_model_best.predict(X_test)
+    y_pred_proba_xgb = xgb_model_best.predict_proba(X_test)
+
+    # Generate all useful metrics
+    accuracy_train_xgb, balanced_accuracy_train_xgb, avg_pairwise_auc_train_xgb = get_all_metrics_multiclass(
+        y_train, y_pred_train_xgb, y_pred_train_proba_xgb
+    )
+    accuracy_test_xgb, balanced_accuracy_test_xgb, avg_pairwise_auc_test_xgb = get_all_metrics_multiclass(
+        y_test, y_pred_xgb, y_pred_proba_xgb
+    )
+    # Scores on train
+    print(
+        f"XGBoost scores on Train:\nAccuracy={accuracy_train_xgb}" +
+        f"\t\tBalanced Accuracy={balanced_accuracy_train_xgb}" +
+        f"\t\tAverage Pairwise AUC={avg_pairwise_auc_train_xgb} "
+    )
     # Scores on test
-    accuracy_test_xgb = accuracy_score(y_test, y_pred_xgb)
-    print(f"XGBoost scores on Test " +
-          f"set:\t Accuracy={round(accuracy_test_xgb, 3)}")
+    print(
+        f"XGBoost scores on Test:\nAccuracy={accuracy_test_xgb}" +
+        f"\t\tBalanced Accuracy={balanced_accuracy_test_xgb}" +
+        f"\t\tAverage Pairwise AUC={avg_pairwise_auc_test_xgb} "
+    )
     return xgb_model_best, accuracy_test_xgb
