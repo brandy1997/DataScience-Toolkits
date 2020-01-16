@@ -134,6 +134,8 @@ def perform_train_test_split(
             y_train = df[df[date_column] <= train_date_limit].iloc[:, -1]
             X_test = df[df[date_column] > train_date_limit].iloc[:, :-1]
             y_test = df[df[date_column] > train_date_limit].iloc[:, -1]
+            n_classes = len(y_train.unique())
+            assert n_classes == 2, f"This dataset is not fit for binary classification as it has {n_classes} classes"
 
     print(f"Train/Test split was performed as {random_or_timeseries}")
     print(f"Percentages of populations:\n{100 * df.iloc[:, -1].value_counts() / len(df)}")
