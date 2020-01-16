@@ -141,6 +141,7 @@ def perform_train_test_split(
             y_test = df[df[date_column] > train_date_limit].iloc[:, -1]
 
     print(f"Train/Test split was performed as {random_or_timeseries}")
+    print(f"Percentages of populations:\n{100 * df.iloc[:, -1].value_counts() / len(df)}")
     return X_train, X_test, y_train, y_test
 
 
