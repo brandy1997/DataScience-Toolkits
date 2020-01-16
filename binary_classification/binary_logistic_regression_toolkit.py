@@ -1,9 +1,10 @@
 # Author: Hamza Tazi Bouardi
 import pandas as pd
 from sklearn.model_selection import GridSearchCV
-from sklearn.metrics import accuracy_score, roc_auc_score, roc_curve, auc
+from sklearn.metrics import roc_curve, auc
 from sklearn.linear_model import LogisticRegression
 from sklearn.preprocessing import StandardScaler
+from binary_utils import get_all_metrics_binary
 
 
 def scale_data(X_train: pd.DataFrame, X_test: pd.DataFrame):
@@ -31,7 +32,8 @@ def logistic_regression_toolkit(
     logreg_model = LogisticRegression(random_state=0)
     gs_params_logreg = {
         "penalty": ["l1", "l2"],
-        "max_iter": [10000]
+        "solver": ["saga"],
+        "max_iter": [1000]
     }
     gs_cv_obj_logreg = GridSearchCV(logreg_model, gs_params_logreg, cv=5, n_jobs=-1, scoring="roc_auc")
     gs_cv_obj_logreg.fit(X_train_scaled, y_train)
@@ -43,7 +45,7 @@ def logistic_regression_toolkit(
         "penalty": ["elasticnet"],
         "solver": ["saga"],
         "l1_ratio": [0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8],
-        "max_iter": [10000]
+        "max_iter": [1000]
     }
     gs_cv_obj_logreg_2 = GridSearchCV(logreg_model, gs_params_logreg_2, cv=5, n_jobs=-1, scoring="roc_auc")
     gs_cv_obj_logreg_2.fit(X_train_scaled, y_train)
@@ -55,10 +57,11 @@ def logistic_regression_toolkit(
 
     # The if/else is for either l1/l2 or elasticnet which don't have
     # the same number of parameters in the gridsearch
-    if len(dict_best_params_logreg) == 2:
+    if len(dict_best_params_logreg) == 3:
         logreg_model_best = LogisticRegression(
             penalty=dict_best_params_logreg["penalty"],
             max_iter=dict_best_params_logreg["max_iter"],
+            solver=dict_best_params_logreg["solver"],
             random_state=0
         )
         logreg_model_best.fit(X_train_scaled, y_train)
@@ -72,20 +75,28 @@ def logistic_regression_toolkit(
         )
         logreg_model_best.fit(X_train_scaled, y_train)
 
-    # Predict probabilities instead of only values for AUC
-    # Scores on train
+    # Predict train and test
     y_pred_train_proba_logreg = logreg_model_best.predict_proba(X_train_scaled)[:, 1]
-    auc_train_score_logreg = roc_auc_score(y_train, y_pred_train_proba_logreg)
-    print(f"Logistic Regression scores on Train\t AUC={round(auc_train_score_logreg, 3)}")
-    # Scores on test
+    y_pred_train_logreg = logreg_model_best.predict(X_train_scaled)
     y_pred_logreg = logreg_model_best.predict(X_test_scaled)
     y_pred_proba_logreg = logreg_model_best.predict_proba(X_test_scaled)[:, 1]
-    accuracy_test_logreg = accuracy_score(y_test, y_pred_logreg)
-    auc_test_score_logreg = roc_auc_score(y_test, y_pred_proba_logreg)
-    print(f"Logistic Regression scores on Test " +
-          f"set:\t Accuracy={round(accuracy_test_logreg, 3)}\t\t AUC={round(auc_test_score_logreg, 3)}")
 
-    # FPR, TPR and AUC for Logistic Regression
+    # Generate all useful metrics
+    accuracy_train_logreg, auc_train_logreg, classification_report_train_logreg = get_all_metrics_binary(
+        y_train, y_pred_train_logreg, y_pred_train_proba_logreg
+    )
+    accuracy_test_logreg, auc_test_logreg, classification_report_test_logreg = get_all_metrics_binary(
+        y_test, y_pred_logreg, y_pred_proba_logreg
+    )
+
+    # Scores on train
+    print(f"Logistic Regression scores on Train:\nAccuracy={accuracy_train_logreg} \tAUC={auc_train_logreg}" +
+          f"\nClassification Report:\n{classification_report_train_logreg} ")
+    # Scores on test
+    print(f"Logistic Regression scores on Test:\nAccuracy={accuracy_test_logreg} \tAUC={auc_test_logreg}" +
+          f"\nClassification Report:\n{classification_report_test_logreg} ")
+
+    # FPR, TPR and AUC for logreg for visualization
     fpr_logreg, tpr_logreg, threshold_logreg = roc_curve(y_test, y_pred_proba_logreg)
     roc_auc_logreg = auc(fpr_logreg, tpr_logreg)
     return logreg_model_best, roc_auc_logreg, fpr_logreg, tpr_logreg

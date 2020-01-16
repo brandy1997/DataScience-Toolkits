@@ -1,8 +1,9 @@
 # Author: Hamza Tazi Bouardi
 import pandas as pd
 from sklearn.model_selection import GridSearchCV
-from sklearn.metrics import accuracy_score, roc_auc_score, roc_curve, auc
+from sklearn.metrics import roc_curve, auc
 from sklearn.tree import DecisionTreeClassifier
+from binary_utils import get_all_metrics_binary
 
 
 def cart_toolkit(
@@ -29,21 +30,29 @@ def cart_toolkit(
         random_state=0
     )
     cart_model_best.fit(X_train, y_train)
-    y_pred_cart = cart_model_best.predict(X_test)
-
-    # Predict probabilities instead of only values for AUC
-    y_pred_proba_cart = cart_model_best.predict_proba(X_test)[:, 1]
-    accuracy_test_cart = accuracy_score(y_test, y_pred_cart)
-    auc_test_score_cart = roc_auc_score(y_test, y_pred_proba_cart)
-    # Scores on train
+    
+    # Predict train and test
     y_pred_train_proba_cart = cart_model_best.predict_proba(X_train)[:, 1]
-    auc_train_score_cart = roc_auc_score(y_train, y_pred_train_proba_cart)
-    print(f"CART scores on Train\t AUC={round(auc_train_score_cart, 3)}")
+    y_pred_train_cart = cart_model_best.predict(X_train)
+    y_pred_cart = cart_model_best.predict(X_test)
+    y_pred_proba_cart = cart_model_best.predict_proba(X_test)[:, 1]
+    
+    # Generate all useful metrics
+    accuracy_train_cart, auc_train_cart, classification_report_train_cart = get_all_metrics_binary(
+        y_train, y_pred_train_cart, y_pred_train_proba_cart
+    )
+    accuracy_test_cart, auc_test_cart, classification_report_test_cart = get_all_metrics_binary(
+        y_test, y_pred_cart, y_pred_proba_cart
+    )
+    
+    # Scores on train
+    print(f"CART scores on Train:\nAccuracy={accuracy_train_cart} \tAUC={auc_train_cart}" +
+          f"\nClassification Report:\n{classification_report_train_cart} ")
     # Scores on test
-    print(f"CART scores on Test " +
-          f"set:\t Accuracy={round(accuracy_test_cart, 3)}\t\t AUC={round(auc_test_score_cart, 3)}")
+    print(f"CART scores on Test:\nAccuracy={accuracy_test_cart} \tAUC={auc_test_cart}" +
+          f"\nClassification Report:\n{classification_report_test_cart} ")
 
-    # FPR, TPR and AUC for CART
+    # FPR, TPR and AUC for CART for visualization
     fpr_cart, tpr_cart, threshold_cart = roc_curve(y_test, y_pred_proba_cart)
     roc_auc_cart = auc(fpr_cart, tpr_cart)
     return cart_model_best, roc_auc_cart, fpr_cart, tpr_cart

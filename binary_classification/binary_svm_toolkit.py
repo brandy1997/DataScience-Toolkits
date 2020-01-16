@@ -2,9 +2,10 @@
 import pandas as pd
 import numpy as np
 from sklearn.model_selection import GridSearchCV
-from sklearn.metrics import accuracy_score, roc_auc_score, roc_curve, auc
+from sklearn.metrics import roc_curve, auc
 from sklearn.preprocessing import StandardScaler
 from sklearn.svm import SVC
+from binary_utils import get_all_metrics_binary
 
 
 class SVM_Toolkit():
@@ -45,13 +46,13 @@ class SVM_Toolkit():
         self.gaussian_svm_toolkit()
 
     def linear_svm_toolkit(self):
-        ## Linear Kernel
+        # Linear Kernel
         svm_linear_model = SVC(
             kernel="linear",
             random_state=0
         )
         gs_params_svm_linear = {
-            "C": np.linspace(0, 10, 50),
+            "C": np.linspace(0.001, 50, 50),
         }
         gs_cv_obj_svm_linear = GridSearchCV(svm_linear_model, gs_params_svm_linear, cv=3, n_jobs=-1, scoring="roc_auc")
         gs_cv_obj_svm_linear.fit(self.X_train_scaled, self.y_train)
@@ -65,21 +66,29 @@ class SVM_Toolkit():
             probability=True
         )
         self.svm_linear_model_best.fit(self.X_train_scaled, self.y_train)
-        y_pred_svm_linear = self.svm_linear_model_best.predict(self.X_test_scaled)
 
-        # Predict probabilities instead of only values for AUC
-        # Scores on train
+        # Predict train and test
         y_pred_train_proba_svm_linear = self.svm_linear_model_best.predict_proba(self.X_train_scaled)[:, 1]
-        auc_train_score_svm_linear = roc_auc_score(self.y_train, y_pred_train_proba_svm_linear)
-        print(f"SVM Linear scores on Train\t AUC={round(auc_train_score_svm_linear,3)}")
-        # Scores on test
+        y_pred_train_svm_linear = self.svm_linear_model_best.predict(self.X_train_scaled)
+        y_pred_svm_linear = self.svm_linear_model_best.predict(self.X_test_scaled)
         y_pred_proba_svm_linear = self.svm_linear_model_best.predict_proba(self.X_test_scaled)[:, 1]
-        accuracy_test_svm_linear = accuracy_score(self.y_test, y_pred_svm_linear)
-        auc_test_score_svm_linear = roc_auc_score(self.y_test, y_pred_proba_svm_linear)
-        print(f"SVM Linear scores on Test " +
-              f"set:\t Accuracy={round(accuracy_test_svm_linear,2)}\t\t AUC={round(auc_test_score_svm_linear,2)}")
 
-        # FPR, TPR and AUC for Linear SVM
+        # Generate all useful metrics
+        accuracy_train_svm_linear, auc_train_svm_linear, classification_report_train_svm_linear = get_all_metrics_binary(
+            self.y_train, y_pred_train_svm_linear, y_pred_train_proba_svm_linear
+        )
+        accuracy_test_svm_linear, auc_test_svm_linear, classification_report_test_svm_linear = get_all_metrics_binary(
+            self.y_test, y_pred_svm_linear, y_pred_proba_svm_linear
+        )
+
+        # Scores on train
+        print(f"Linear SVM scores on Train:\nAccuracy={accuracy_train_svm_linear} \tAUC={auc_train_svm_linear}" +
+              f"\nClassification Report:\n{classification_report_train_svm_linear} ")
+        # Scores on test
+        print(f"Linear SVM scores on Test:\nAccuracy={accuracy_test_svm_linear} \tAUC={auc_test_svm_linear}" +
+              f"\nClassification Report:\n{classification_report_test_svm_linear} ")
+
+        # FPR, TPR and AUC for svm_linear for visualization
         self.fpr_svm_linear, self.tpr_svm_linear, self.threshold_svm_linear = roc_curve(
             self.y_test,
             y_pred_proba_svm_linear
@@ -87,13 +96,13 @@ class SVM_Toolkit():
         self.roc_auc_svm_linear = auc(self.fpr_svm_linear, self.tpr_svm_linear)
 
     def gaussian_svm_toolkit(self):
-        ## Gaussian Kernel
+        # Gaussian Kernel
         svm_rbf_model = SVC(
             kernel="rbf",
             random_state=0
         )
         gs_params_svm_rbf = {
-            "C": np.linspace(9, 50, 60),
+            "C": np.linspace(0.001, 50, 50),
         }
         gs_cv_obj_svm_rbf = GridSearchCV(svm_rbf_model, gs_params_svm_rbf, cv=3, n_jobs=-1, scoring="roc_auc")
         gs_cv_obj_svm_rbf.fit(self.X_train_scaled, self.y_train)
@@ -107,19 +116,29 @@ class SVM_Toolkit():
             probability=True
         )
         self.svm_rbf_model_best.fit(self.X_train_scaled, self.y_train)
-        y_pred_svm_rbf = self.svm_rbf_model_best.predict(self.X_test_scaled)
-        # Predict probabilities instead of only values for AUC
-        # Scores on train
+        
+        # Predict train and test
         y_pred_train_proba_svm_rbf = self.svm_rbf_model_best.predict_proba(self.X_train_scaled)[:, 1]
-        auc_train_score_svm_rbf = roc_auc_score(self.y_train, y_pred_train_proba_svm_rbf)
-        print(f"SVM Gaussian scores on Train\t AUC={round(auc_train_score_svm_rbf,3)}")
-        # Scores on test
+        y_pred_train_svm_rbf = self.svm_rbf_model_best.predict(self.X_train_scaled)
+        y_pred_svm_rbf = self.svm_rbf_model_best.predict(self.X_test_scaled)
         y_pred_proba_svm_rbf = self.svm_rbf_model_best.predict_proba(self.X_test_scaled)[:, 1]
-        accuracy_test_svm_rbf = accuracy_score(self.y_test, y_pred_svm_rbf)
-        auc_test_score_svm_rbf = roc_auc_score(self.y_test, y_pred_proba_svm_rbf)
-        print(f"SVM Gaussian scores on Test " +
-              f"set:\t Accuracy={round(accuracy_test_svm_rbf,2)}\t\t AUC={round(auc_test_score_svm_rbf,2)}")
-        # FPR, TPR and AUC for Gaussian SVM
+
+        # Generate all useful metrics
+        accuracy_train_svm_rbf, auc_train_svm_rbf, classification_report_train_svm_rbf = get_all_metrics_binary(
+            self.y_train, y_pred_train_svm_rbf, y_pred_train_proba_svm_rbf
+        )
+        accuracy_test_svm_rbf, auc_test_svm_rbf, classification_report_test_svm_rbf = get_all_metrics_binary(
+            self.y_test, y_pred_svm_rbf, y_pred_proba_svm_rbf
+        )
+
+        # Scores on train
+        print(f"rbf SVM scores on Train:\nAccuracy={accuracy_train_svm_rbf} \tAUC={auc_train_svm_rbf}" +
+              f"\nClassification Report:\n{classification_report_train_svm_rbf} ")
+        # Scores on test
+        print(f"rbf SVM scores on Test:\nAccuracy={accuracy_test_svm_rbf} \tAUC={auc_test_svm_rbf}" +
+              f"\nClassification Report:\n{classification_report_test_svm_rbf} ")
+
+        # FPR, TPR and AUC for svm_rbf for visualization
         self.fpr_svm_rbf, self.tpr_svm_rbf, self.threshold_svm_rbf = roc_curve(
             self.y_test,
             y_pred_proba_svm_rbf

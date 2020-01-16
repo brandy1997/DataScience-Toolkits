@@ -1,8 +1,9 @@
 # Author: Hamza Tazi Bouardi
 import pandas as pd
 from sklearn.model_selection import GridSearchCV
-from sklearn.metrics import accuracy_score, roc_auc_score, roc_curve, auc
+from sklearn.metrics import roc_curve, auc
 from sklearn.ensemble import RandomForestClassifier
+from binary_utils import get_all_metrics_binary
 
 def random_forest_toolkit(
         X_train: pd.DataFrame,
@@ -30,21 +31,29 @@ def random_forest_toolkit(
         random_state=0
     )
     rf_model_best.fit(X_train, y_train)
-    y_pred_rf = rf_model_best.predict(X_test)
-
-    # Predict probabilities instead of only values for AUC
-    # Scores on train
+    
+    # Predict train and test
     y_pred_train_proba_rf = rf_model_best.predict_proba(X_train)[:, 1]
-    auc_train_score_rf = roc_auc_score(y_train, y_pred_train_proba_rf)
-    print(f"Random Forest scores on Train\t AUC={round(auc_train_score_rf, 3)}")
-    # Scores on test
+    y_pred_train_rf = rf_model_best.predict(X_train)
+    y_pred_rf = rf_model_best.predict(X_test)
     y_pred_proba_rf = rf_model_best.predict_proba(X_test)[:, 1]
-    accuracy_test_rf = accuracy_score(y_test, y_pred_rf)
-    auc_test_score_rf = roc_auc_score(y_test, y_pred_proba_rf)
-    print(f"Random Forest scores on Test " +
-          f"set:\t Accuracy={round(accuracy_test_rf, 3)}\t\t AUC={round(auc_test_score_rf, 3)}")
 
-    # FPR, TPR and AUC for Random Forest
+    # Generate all useful metrics
+    accuracy_train_rf, auc_train_rf, classification_report_train_rf = get_all_metrics_binary(
+        y_train, y_pred_train_rf, y_pred_train_proba_rf
+    )
+    accuracy_test_rf, auc_test_rf, classification_report_test_rf = get_all_metrics_binary(
+        y_test, y_pred_rf, y_pred_proba_rf
+    )
+
+    # Scores on train
+    print(f"Random Forest scores on Train:\nAccuracy={accuracy_train_rf} \tAUC={auc_train_rf}" +
+          f"\nClassification Report:\n{classification_report_train_rf} ")
+    # Scores on test
+    print(f"Random Forest scores on Test:\nAccuracy={accuracy_test_rf} \tAUC={auc_test_rf}" +
+          f"\nClassification Report:\n{classification_report_test_rf} ")
+
+    # FPR, TPR and AUC for rf for visualization
     fpr_rf, tpr_rf, threshold_rf = roc_curve(y_test, y_pred_proba_rf)
     roc_auc_rf = auc(fpr_rf, tpr_rf)
     return rf_model_best, roc_auc_rf, fpr_rf, tpr_rf

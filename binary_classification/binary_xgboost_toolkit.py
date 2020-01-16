@@ -1,8 +1,9 @@
 # Author: Hamza Tazi Bouardi
 import pandas as pd
 from sklearn.model_selection import GridSearchCV
-from sklearn.metrics import accuracy_score, roc_auc_score, roc_curve, auc
+from sklearn.metrics import roc_curve, auc
 from xgboost import XGBClassifier
+from binary_utils import get_all_metrics_binary
 
 
 def xgboost_toolkit(
@@ -35,21 +36,29 @@ def xgboost_toolkit(
         random_state=0
     )
     xgb_model_best.fit(X_train, y_train)
-    y_pred_xgb = xgb_model_best.predict(X_test)
-
-    # Predict probabilities instead of only values for AUC
-    # Scores on train
+    
+    # Predict train and test
     y_pred_train_proba_xgb = xgb_model_best.predict_proba(X_train)[:, 1]
-    auc_train_score_xgb = roc_auc_score(y_train, y_pred_train_proba_xgb)
-    print(f"XGBoost scores on Train\t AUC={round(auc_train_score_xgb, 3)}")
-    # Scores on test
+    y_pred_train_xgb = xgb_model_best.predict(X_train)
+    y_pred_xgb = xgb_model_best.predict(X_test)
     y_pred_proba_xgb = xgb_model_best.predict_proba(X_test)[:, 1]
-    accuracy_test_xgb = accuracy_score(y_test, y_pred_xgb)
-    auc_test_score_xgb = roc_auc_score(y_test, y_pred_proba_xgb)
-    print(f"XGBoost scores on Test " +
-          f"set:\t Accuracy={round(accuracy_test_xgb, 2)}\t\t AUC={round(auc_test_score_xgb, 2)}")
 
-    # FPR, TPR and AUC for XGBoost
+    # Generate all useful metrics
+    accuracy_train_xgb, auc_train_xgb, classification_report_train_xgb = get_all_metrics_binary(
+        y_train, y_pred_train_xgb, y_pred_train_proba_xgb
+    )
+    accuracy_test_xgb, auc_test_xgb, classification_report_test_xgb = get_all_metrics_binary(
+        y_test, y_pred_xgb, y_pred_proba_xgb
+    )
+
+    # Scores on train
+    print(f"XGBoost scores on Train:\nAccuracy={accuracy_train_xgb} \tAUC={auc_train_xgb}" +
+          f"\nClassification Report:\n{classification_report_train_xgb} ")
+    # Scores on test
+    print(f"XGBoost scores on Test:\nAccuracy={accuracy_test_xgb} \tAUC={auc_test_xgb}" +
+          f"\nClassification Report:\n{classification_report_test_xgb} ")
+
+    # FPR, TPR and AUC for xgb for visualization
     fpr_xgb, tpr_xgb, threshold_xgb = roc_curve(y_test, y_pred_proba_xgb)
     roc_auc_xgb = auc(fpr_xgb, tpr_xgb)
     return xgb_model_best, roc_auc_xgb, fpr_xgb, tpr_xgb
