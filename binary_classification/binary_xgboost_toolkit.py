@@ -16,7 +16,7 @@ def xgboost_toolkit(
         random_state=0
     )
     gs_params_xgb = {
-        "n_estimators": [50, 100, 200, 500],
+        "n_estimators": [50, 100, 200, 500, 1000],
         "learning_rate": [0.1, 0.05, 0.01, 0.005],
         "max_depth": [2, 3, 4, 5, 6, 7],
         "objective": ['binary:logistic'],

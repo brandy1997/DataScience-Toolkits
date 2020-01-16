@@ -15,18 +15,27 @@ from binary_svm_toolkit import SVM_Toolkit
 # with the last column being the labels
 df = pd.read_csv("filename.csv")
 @click.command()
-@click.option('--last_column_is_target',
-              prompt='Is the last column of the dataset the target (vector y)? Answer yes/no')
-@click.option('--random_or_timeseries', default="random",
-              prompt="Do you want a 'random' train/test split or is this a 'timeseries' dataset?",
-              help="Answer with 'random' or 'timeseries'")
-@click.option('--date_column', default="",
-              prompt='What is the name of the date column (either str or datetime)?')
-@click.option('--train_date_limit',
-              default="",
-              prompt="What is the training set date limit (string format)? This date will be included in train.",
-              help="Example: 2020-01-10"
-              )
+@click.option(
+    '--last_column_is_target',
+    prompt='Is the last column of the dataset the target (vector y)? Answer yes/no'
+)
+@click.option(
+    '--random_or_timeseries',
+    default="random",
+    prompt="Do you want a 'random' train/test split or is this a 'timeseries' dataset?",
+    help="Answer with 'random' or 'timeseries'"
+)
+@click.option(
+    '--date_column',
+    default="",
+    prompt='What is the name of the date column (either str or datetime)?'
+)
+@click.option(
+    '--train_date_limit',
+    default="",
+    prompt="What is the training set date limit (string format)? This date will be included in train.",
+    help="Example: 2020-01-10"
+)
 def run_binary_classification(
         last_column_is_target,
         random_or_timeseries,
@@ -83,12 +92,15 @@ def run_binary_classification(
     plt.figure(figsize=(12, 7))
     plt.title('ROC Curve for all models', fontsize=16)
     plt.plot(fpr_cart, tpr_cart, 'b', label='Test AUC CART = %0.3f' % roc_auc_cart, color='g')
-    plt.plot(fpr_logreg, tpr_logreg, 'b', label='Test AUC LogReg = %0.3f' % roc_auc_logreg, color='orange')
+    plt.plot(fpr_logreg, tpr_logreg, 'b',
+             label='Test AUC LogReg = %0.3f' % roc_auc_logreg, color='orange')
     plt.plot(fpr_rf, tpr_rf, 'b', label='Test AUC RF = %0.3f' % roc_auc_rf, color='lime')
     plt.plot(fpr_xgb, tpr_xgb, 'b', label='Test AUC XGBoost = %0.3f' % roc_auc_xgb)
     if len(X_train) < threshold_nrows_svm:
-        plt.plot(fpr_svm_linear, tpr_svm_linear, 'b', label='Test AUC Linear SVM = %0.3f' % roc_auc_svm_linear, color="magenta")
-        plt.plot(fpr_svm_rbf, tpr_svm_rbf, 'b', label='Test AUC Gaussian SVM = %0.3f' % roc_auc_svm_rbf, color="gray")
+        plt.plot(fpr_svm_linear, tpr_svm_linear, 'b',
+                 label='Test AUC Linear SVM = %0.3f' % roc_auc_svm_linear, color="magenta")
+        plt.plot(fpr_svm_rbf, tpr_svm_rbf, 'b',
+                 label='Test AUC Gaussian SVM = %0.3f' % roc_auc_svm_rbf, color="gray")
     else:
         pass
     plt.plot([0, 1], [0, 1], 'k--', label="Baseline AUC = 0.500")
@@ -97,7 +109,7 @@ def run_binary_classification(
     plt.ylim([0, 1])
     plt.ylabel('True Positive Rate', fontsize=12)
     plt.xlabel('False Positive Rate', fontsize=12)
-    plt.savefig(f"{datetime.now().date()}_roc_auc.png")
+    plt.savefig(f"{datetime.now().date()}_binary_roc_auc.png")
 
 
 def perform_train_test_split(
@@ -123,6 +135,7 @@ def perform_train_test_split(
             X_test = df[df[date_column] > train_date_limit].iloc[:, :-1]
             y_test = df[df[date_column] > train_date_limit].iloc[:, -1]
 
+    print(f"Train/Test split was performed as {random_or_timeseries}")
     return X_train, X_test, y_train, y_test
 
 

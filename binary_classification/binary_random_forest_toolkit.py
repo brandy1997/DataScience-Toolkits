@@ -13,7 +13,7 @@ def random_forest_toolkit(
 ):
     rf_model = RandomForestClassifier(random_state=0)
     gs_params_rf = {
-        "n_estimators": [10, 50, 100, 200, 500],
+        "n_estimators": [10, 50, 100, 200, 500, 1000],
         "criterion": ["gini", "entropy"],
         "max_depth": [2, 3, 4, 5, 6, 7, 8],
         "min_samples_leaf": [5, 10, 15, 20]

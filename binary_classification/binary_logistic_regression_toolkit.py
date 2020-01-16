@@ -57,7 +57,7 @@ def logistic_regression_toolkit(
 
     # The if/else is for either l1/l2 or elasticnet which don't have
     # the same number of parameters in the gridsearch
-    if len(dict_best_params_logreg) == 3:
+    if len(dict_best_params_logreg) == len(gs_params_logreg):
         logreg_model_best = LogisticRegression(
             penalty=dict_best_params_logreg["penalty"],
             max_iter=dict_best_params_logreg["max_iter"],
